@@ -7,6 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -22,17 +26,17 @@ class EmaIntegrationTest {
 
         @Override
         public void onRefreshMsg(RefreshMsg refreshMsg, OmmConsumerEvent event) {
-            System.out.println("✅ Refresh Received: " + refreshMsg.name());
+            System.out.println("Refresh Received: " + refreshMsg.name());
             received = true;
         }
 
         @Override public void onUpdateMsg(UpdateMsg updateMsg, OmmConsumerEvent event) {
-            System.out.println("✅ Update Received: " + updateMsg.name());
+            System.out.println("Update Received: " + updateMsg.name());
             received = true;
         }
 
         @Override public void onStatusMsg(StatusMsg statusMsg, OmmConsumerEvent event) {
-            System.out.println("⚠️ Status: " + statusMsg);
+            System.out.println("Status: " + statusMsg);
         }
 
         @Override public void onGenericMsg(GenericMsg genericMsg, OmmConsumerEvent event) {}
@@ -40,30 +44,23 @@ class EmaIntegrationTest {
 
         @Override
         public void onAllMsg(Msg msg, OmmConsumerEvent ommConsumerEvent) {
-            System.out.println("⚠️ Msg: " + msg);
+            System.out.println("Msg: " + msg);
         }
     }
 
     @Test
     void testReceiveMarketData() throws InterruptedException {
-        final String SERVICE_NAME = "TAQ_SERVICE";
-        final String RIC = "WOR";
-
-        // Simulate the app providing initial trade
-        emaPublisher.publishTrade(RIC, 125.50, 1000);
-
+        final String SERVICE_NAME = "DIRECT_FEED";
+        final String RIC = "SPY";
         TestClient client = new TestClient();
 
-        OmmConsumerConfig consumerConfig = EmaFactory.createOmmConsumerConfig()
-                .host("localhost:14002")
-                .username("test-user")
-                .operationModel(OmmConsumerConfig.OperationModel.USER_DISPATCH);
+        OmmConsumerConfig consumerConfig = getOmmConsumerConfig();
         OmmConsumer consumer = EmaFactory.createOmmConsumer(consumerConfig, client);
         try {
 
             long handle = consumer.registerClient(
                     EmaFactory.createReqMsg()
-                            .domainType(EmaRdm.MMT_MARKET_PRICE)
+                            .domainType(EmaRdm.MMT_MARKET_BY_ORDER)
                             .serviceName(SERVICE_NAME)
                             .name(RIC),
                     client
@@ -78,7 +75,18 @@ class EmaIntegrationTest {
             }
 
             assertTrue(client.received, "Should have received refresh/update from provider");
+            Thread.sleep(2000);
         }
+
+    private static OmmConsumerConfig getOmmConsumerConfig() {
+        OmmConsumerConfig consumerConfig = EmaFactory.createOmmConsumerConfig()
+                .host("localhost:14002")
+                .username("test-user")
+                .operationModel(OmmConsumerConfig.OperationModel.USER_DISPATCH);
+        return consumerConfig;
+    }
+
+
 }
 
 

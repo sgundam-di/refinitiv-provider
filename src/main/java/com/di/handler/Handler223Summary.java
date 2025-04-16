@@ -1,6 +1,8 @@
 package com.di.handler;
 
 import com.di.publisher.EmaPublisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -9,6 +11,7 @@ public class Handler223Summary implements TaqMessageHandler {
 
     private final EmaPublisher publisher;
 
+    private static final Logger LOG = LoggerFactory.getLogger(Handler223Summary.class);
     @Autowired
     public Handler223Summary(EmaPublisher publisher) {
         this.publisher = publisher;
@@ -17,7 +20,7 @@ public class Handler223Summary implements TaqMessageHandler {
     @Override
     public void handle(String[] fields) {
         try {
-            String ric = fields[2];
+            String ric = fields[3];
             double high = Double.parseDouble(fields[8]);
             double low = Double.parseDouble(fields[9]);
             double close = Double.parseDouble(fields[10]);

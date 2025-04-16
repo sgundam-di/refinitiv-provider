@@ -1,7 +1,6 @@
 package com.di.handler;
 
 import com.di.publisher.EmaPublisher;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component

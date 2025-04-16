@@ -1,11 +1,15 @@
 package com.di.publisher;
 
+import com.di.parser.TaqCsvReader;
 import com.refinitiv.ema.access.*;
 import com.refinitiv.ema.rdm.EmaRdm;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.refinitiv.ema.rdm.EmaRdm.MMT_MARKET_BY_ORDER;
 
@@ -15,6 +19,13 @@ public class AppClient implements OmmProviderClient {
 	private final Map<String, Long> ricToHandle = new ConcurrentHashMap<>();
 	private OmmProvider provider;
 
+	private final TaqCsvReader taqCsvReader;
+	private final AtomicBoolean started = new AtomicBoolean(false);
+
+	@Autowired
+	public AppClient(@Lazy TaqCsvReader taqCsvReader) {
+		this.taqCsvReader = taqCsvReader;
+	}
 	public void setProvider(OmmProvider provider) {
 		this.provider = provider;
 	}
@@ -29,6 +40,7 @@ public class AppClient implements OmmProviderClient {
 	@Override
 	public void onReqMsg(ReqMsg reqMsg, OmmProviderEvent event) {
 		if (reqMsg.domainType() == EmaRdm.MMT_LOGIN) {
+
 			provider.submit(EmaFactory.createRefreshMsg()
 							.domainType(EmaRdm.MMT_LOGIN)
 							.name(reqMsg.name())
@@ -37,6 +49,10 @@ public class AppClient implements OmmProviderClient {
 							.state(OmmState.StreamState.OPEN, OmmState.DataState.OK,
 									OmmState.StatusCode.NONE, "Login accepted"),
 					event.handle());
+			if (!started.getAndSet(true)) {
+				System.out.println("Consumer requested data, starting TAQ reader...");
+				taqCsvReader.startReading();
+			}
 		} else if ( reqMsg.domainType() == MMT_MARKET_BY_ORDER) {
 			String ric = reqMsg.name();
 
@@ -76,7 +92,7 @@ public class AppClient implements OmmProviderClient {
 	public void onStatusMsg(StatusMsg statusMsg, OmmProviderEvent event) {
 		if (statusMsg.hasState() && statusMsg.state().streamState() == OmmState.StreamState.CLOSED) {
 			ricToHandle.values().removeIf(h -> h.equals(event.handle()));
-			System.out.println("❌ Stream CLOSED (via status) — handle removed: " + event.handle());
+			System.out.println("Stream CLOSED (via status) — handle removed: " + event.handle());
 		}
 	}
 

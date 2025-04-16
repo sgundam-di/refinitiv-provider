@@ -21,19 +21,19 @@ public class TaqCsvReader {
         this.config = config;
         this.dispatcher = dispatcher;
     }
-    @PostConstruct
-    public void init() {
-
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(new GZIPInputStream(new FileInputStream(config.getGzipFile())), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] fields = line.split(",", -1);
-                int msgType = Integer.parseInt(fields[0].trim());
-                dispatcher.dispatch(msgType, fields);
+    public void startReading() {
+        new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(new GZIPInputStream(new FileInputStream(config.getGzipFile())), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] fields = line.split(",", -1);
+                    int msgType = Integer.parseInt(fields[0].trim());
+                    dispatcher.dispatch(msgType, fields);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to parse TAQ file: " + config.getGzipFile(), e);
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to parse TAQ file: " + config.getGzipFile(), e);
-        }
+        }).start();
     }
 }

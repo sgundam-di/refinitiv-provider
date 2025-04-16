@@ -15,7 +15,7 @@ public class Handler114RetailImprovement implements TaqMessageHandler {
     }
 
     public void handle(String[] fields) {
-        String ric = fields[2];
+        String ric = fields[3];
         double price = Double.parseDouble(fields[8]);
         long size = Long.parseLong(fields[7]);
         publisher.publishTrade(ric, price, size);

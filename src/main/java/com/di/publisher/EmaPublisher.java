@@ -30,7 +30,7 @@ public class EmaPublisher {
 
             System.out.println("🔁 Waiting for stream: " + ric);
             if (ric.matches("\\d{2}:\\d{2}:\\d{2}\\.\\d+")) {
-                System.out.println("⚠️ Suspected timestamp passed as RIC: " + ric + " — check handler source");
+                System.out.println("Suspected timestamp passed as RIC: " + ric + " — check handler source");
             }
             return;
         }
