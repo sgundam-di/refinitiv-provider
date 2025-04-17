@@ -4,6 +4,8 @@ import com.refinitiv.ema.access.*;
 import com.refinitiv.ema.rdm.EmaRdm;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,6 +14,7 @@ public class EmaPublisher {
     private OmmProvider provider;
     private final AppClient appClient;
     private final String serviceName = "DIRECT_FEED";
+    private static final Logger LOG = LoggerFactory.getLogger(EmaPublisher.class);
 
     public EmaPublisher(AppClient appClient) {
         this.appClient = appClient;
@@ -28,9 +31,9 @@ public class EmaPublisher {
         Long handle = appClient.getHandle(ric);
         if (handle == null) {
 
-            System.out.println("🔁 Waiting for stream: " + ric);
+            LOG.debug("🔁 Waiting for stream: " + ric);
             if (ric.matches("\\d{2}:\\d{2}:\\d{2}\\.\\d+")) {
-                System.out.println("Suspected timestamp passed as RIC: " + ric + " — check handler source");
+                LOG.warn("Suspected timestamp passed as RIC: " + ric + " — check handler source");
             }
             return;
         }

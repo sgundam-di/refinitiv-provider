@@ -16,6 +16,6 @@ public class Handler102DeleteOrder implements TaqMessageHandler {
     }
     public void handle(String[] fields) {
         String ric = fields[3];
-        LOG.info("Order deleted for RIC: {}", ric);
+        LOG.debug("Order deleted for RIC: {}", ric);
     }
 }

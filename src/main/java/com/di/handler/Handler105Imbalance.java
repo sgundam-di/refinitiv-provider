@@ -16,6 +16,6 @@ public class Handler105Imbalance implements TaqMessageHandler {
     }
     public void handle(String[] fields) {
         String ric = fields[3];
-        LOG.info("Imbalance for: {} — Value: {}", ric, fields[8]);
+        LOG.debug("Imbalance for: {} — Value: {}", ric, fields[8]);
     }
 }
